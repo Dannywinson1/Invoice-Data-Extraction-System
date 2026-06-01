@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Invoicely.AI | Layout-Aware Invoice Extraction</title>
+  <meta name="description" content="Turn any PDF invoice into structured JSON with 95% accuracy. No templates. No config." />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/feather-icons"></script>
+  
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { 
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace']
+          },
+          colors: {
+            brand: {
+              blue: '#2563EB',     
+              blueHover: '#1D4ED8',
+              dark: '#0B1120',
+              terminal: '#1E293B'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    html { scroll-behavior: smooth; }
+    body { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+    
+    .glass-nav { 
+      background: rgba(255, 255, 255, 0.85); 
+      backdrop-filter: blur(12px); 
+      -webkit-backdrop-filter: blur(12px); 
+    }
+    
+    .grid-pattern { 
+      background-image: radial-gradient(#cbd5e1 1px, transparent 1px); 
+      background-size: 32px 32px; 
+    }
+
+    /* React Demo Animations */
+    .fade-in { animation: fadeIn 0.4s ease-out; }
+    .slide-up { animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Syntax Highlighting for JSON Output */
+    .j-key { color: #7DD3FC; } /* Light Blue */
+    .j-str { color: #A7F3D0; } /* Light Green */
+    .j-num { color: #FDBA74; } /* Orange */
+    .j-bool { color: #FCA5A5; } /* Red */
+    .j-sym { color: #94A3B8; } /* Slate */
+    
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+  </style>
+</head>
+
+<body class="font-sans text-slate-900 bg-white selection:bg-brand-blue selection:text-white">
+
+  <nav class="fixed w-full z-50 glass-nav border-b border-slate-200 shadow-sm">
+    <div class="max-w-[90rem] mx-auto px-6 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 bg-brand-blue text-white rounded-md flex items-center justify-center font-bold text-xl leading-none">
+          ⬡
+        </div>
+        <span class="font-extrabold text-xl tracking-tight text-slate-900">Invoicely<span class="text-brand-blue">.AI</span></span>
+      </div>
+      <div class="hidden md:flex gap-8 text-sm font-semibold text-slate-500">
+        <a href="#how-it-works" class="hover:text-slate-900 transition-colors">How it works</a>
+        <a href="#features" class="hover:text-slate-900 transition-colors">Features</a>
+      </div>
+      <a href="https://github.com/Dannywinson1/Invoice-Data-Extraction-System" target="_blank" class="flex items-center gap-2 text-sm font-bold text-white bg-slate-900 px-5 py-2.5 rounded-lg hover:bg-slate-800 transition shadow-md">
+        <i data-feather="github" class="w-4 h-4"></i> View Source
+      </a>
+    </div>
+  </nav>
+
+  <section class="relative pt-32 pb-24 bg-white overflow-hidden border-b border-slate-200">
+    <div class="absolute inset-0 grid-pattern opacity-40 -z-10"></div>
+    <div class="absolute top-0 right-0 w-[800px] h-[800px] bg-brand-blue/5 rounded-full blur-3xl -z-10 -translate-y-1/3 translate-x-1/4"></div>
+    
+    <div class="max-w-[90rem] mx-auto px-6 grid xl:grid-cols-2 gap-12 items-center mt-6">
+      
+      <div class="max-w-2xl pr-8">
+        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50 border border-blue-100 text-brand-blue text-xs font-bold mb-6 tracking-wide uppercase shadow-sm">
+          <span class="relative flex h-2 w-2">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-blue opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-brand-blue"></span>
+          </span>
+          Try the Interactive Demo
+        </div>
+        
+        <h1 class="text-5xl lg:text-6xl xl:text-7xl font-extrabold tracking-tight text-slate-900 mb-6 leading-[1.05]">
+          Turn any invoice <br />
+          into clean <span class="text-brand-blue">JSON data.</span>
+        </h1>
+        
+        <p class="text-lg text-slate-600 mb-10 leading-relaxed font-medium max-w-xl">
+          A layout-aware extraction engine that natively understands PDF structure. It extracts vendors, line items, and totals instantly. No templates. No config.
+        </p>
+        
+        <div class="flex items-center gap-8 border-t border-slate-200 pt-8 mt-8">
+          <div>
+            <div class="text-3xl font-extrabold text-slate-900 tracking-tight">95%</div>
+            <div class="text-xs font-bold text-slate-400 mt-1 uppercase tracking-wider">Accuracy</div>
+          </div>
+          <div class="w-px h-10 bg-slate-200"></div>
+          <div>
+            <div class="text-3xl font-extrabold text-slate-900 tracking-tight">&lt;2s</div>
+            <div class="text-xs font-bold text-slate-400 mt-1 uppercase tracking-wider">Per File</div>
+          </div>
+          <div class="w-px h-10 bg-slate-200"></div>
+          <div>
+            <div class="text-3xl font-extrabold text-brand-blue tracking-tight">Open</div>
+            <div class="text-xs font-bold text-slate-400 mt-1 uppercase tracking-wider">Source</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="relative w-full h-[600px] shadow-[0_20px_60px_-15px_rgba(37,99,235,0.15)] rounded-2xl overflow-hidden border border-slate-200 bg-slate-50 transform transition-transform duration-500 hover:-translate-y-1">
+        <div class="bg-white px-4 py-3 flex items-center justify-between border-b border-slate-200 absolute top-0 w-full z-50">
+          <div class="flex items-center gap-2">
+            <div class="w-3 h-3 rounded-full bg-red-400"></div>
+            <div class="w-3 h-3 rounded-full bg-amber-400"></div>
+            <div class="w-3 h-3 rounded-full bg-green-400"></div>
+          </div>
+          <div class="text-xs font-mono text-slate-400 font-medium">invoicely.ai / extract</div>
+          <div class="w-10"></div> </div>
+        
+        <div id="react-demo-root" class="h-full w-full pt-[45px]"></div>
+      </div>
+
+    </div>
+  </section>
+
+  <section id="how-it-works" class="py-24 bg-slate-50 border-b border-slate-200">
+    <div class="max-w-7xl mx-auto px-6 text-center">
+      <div class="text-sm font-bold text-brand-blue uppercase tracking-widest mb-3">Architecture</div>
+      <h2 class="text-3xl md:text-5xl font-extrabold text-slate-900 tracking-tight mb-16">How the engine works</h2>
+      
+      <div class="grid md:grid-cols-4 gap-6 text-left">
+        <div class="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
+          <div class="text-5xl font-extrabold text-slate-50 absolute -right-2 -top-2">01</div>
+          <h3 class="font-bold text-slate-900 text-lg mb-3 relative z-10">PDF Ingestion</h3>
+          <p class="text-slate-500 text-sm leading-relaxed relative z-10 font-medium">Accepts any PDF. Text-based PDFs are parsed natively via geometry; image PDFs pass through OCR.</p>
+        </div>
+        <div class="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
+          <div class="text-5xl font-extrabold text-slate-50 absolute -right-2 -top-2">02</div>
+          <h3 class="font-bold text-slate-900 text-lg mb-3 relative z-10">Layout Analysis</h3>
+          <p class="text-slate-500 text-sm leading-relaxed relative z-10 font-medium">Spatial coordinates of every text block are mapped to identify tables, headers, and totals dynamically.</p>
+        </div>
+        <div class="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
+          <div class="text-5xl font-extrabold text-slate-50 absolute -right-2 -top-2">03</div>
+          <h3 class="font-bold text-slate-900 text-lg mb-3 relative z-10">Field Extraction</h3>
+          <p class="text-slate-500 text-sm leading-relaxed relative z-10 font-medium">Named fields are located using positional heuristics and regex patterns validated across thousands of layouts.</p>
+        </div>
+        <div class="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
+          <div class="text-5xl font-extrabold text-slate-50 absolute -right-2 -top-2">04</div>
+          <h3 class="font-bold text-slate-900 text-lg mb-3 relative z-10">JSON Output</h3>
+          <p class="text-slate-500 text-sm leading-relaxed relative z-10 font-medium">Data is normalized and emitted as a strictly typed JSON object with confidence scores attached.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="py-12 bg-white text-slate-900 border-t border-slate-200">
+    <div class="max-w-[90rem] mx-auto px-6 flex flex-col md:flex-row justify-between items-center text-sm font-medium">
+      <div class="flex items-center gap-2 mb-4 md:mb-0">
+        <span class="font-extrabold text-slate-900 text-lg">⬡ Invoicely.AI</span>
+        <span class="ml-2 text-slate-400 font-normal">Built by Danny Tang.</span>
+      </div>
+      <a href="https://github.com/Dannywinson1/Invoice-Data-Extraction-System" class="text-slate-500 hover:text-brand-blue transition-colors flex items-center gap-2">
+        <i data-feather="github" class="w-4 h-4"></i> View the repository
+      </a>
+    </div>
+  </footer>
+
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    const SAMPLES = [
+      { id: "INV-2026-0391", vendor: "Stripe Inc.", date: "2026-06-01", sub: 1240.00, tax: 99.20, total: 1339.20, conf: 98.2 },
+      { id: "ORD-9912-AWS", vendor: "AWS Services", date: "2026-05-28", sub: 4812.50, tax: 385.00, total: 5197.50, conf: 95.7 },
+      { id: "INV-VERCEL-01", vendor: "Vercel Corp.", date: "2026-06-02", sub: 320.00, tax: 25.60, total: 345.60, conf: 99.1 }
+    ];
+
+    function UploadScreen({ onStart }) {
+      const [hover, setHover] = useState(false);
+      return (
+        <div style={{ height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+          <div className="fade-in-up" 
+               onClick={onStart} 
+               onMouseEnter={() => setHover(true)} 
+               onMouseLeave={() => setHover(false)} 
+               style={{ 
+                 width: "100%", maxWidth: "400px", background: "white",
+                 border: `2px dashed ${hover ? '#2563EB' : '#CBD5E1'}`, 
+                 borderRadius: "16px", padding: "40px 24px", textAlign: "center", cursor: "pointer", 
+                 transition: "all 0.2s ease",
+                 boxShadow: hover ? "0 10px 25px -5px rgba(37,99,235,0.1)" : "none",
+                 transform: hover ? "translateY(-2px)" : "none"
+               }}>
+            <div style={{ width: "56px", height: "56px", borderRadius: "50%", background: hover ? '#EFF6FF' : '#F8FAFC', color: hover ? '#2563EB' : '#94A3B8', display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", transition: "all 0.2s" }}>
+               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            </div>
+            <div style={{ fontSize: "16px", fontWeight: "700", color: "#0F172A", marginBottom: "8px" }}>Upload Invoice PDF</div>
+            <div style={{ fontSize: "13px", color: "#64748B", marginBottom: "24px", fontWeight: "500" }}>Or click to run a sample extraction</div>
+            <button style={{ background: "#2563EB", color: "white", fontWeight: "600", fontSize: "13px", padding: "10px 24px", borderRadius: "8px", border: "none", cursor: "pointer", width: "100%" }}>
+              Run Extraction Demo →
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    function ProcessingScreen({ step }) {
+      const steps = [
+        "Ingesting PDF Document...",
+        "Mapping spatial X/Y coordinates...",
+        "Identifying tables and layout heuristics...",
+        "Extracting named entities and totals...",
+        "Serializing to JSON..."
+      ];
+      const pct = Math.min(100, Math.round((step / (steps.length - 1)) * 100));
+
+      return (
+        <div style={{ height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+          <div style={{ width: "100%", maxWidth: "400px", background: "white", border: "1px solid #E2E8F0", borderRadius: "16px", padding: "32px", boxShadow: "0 10px 25px -5px rgba(0,0,0,0.05)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+              <span style={{ fontSize: "13px", color: "#64748B", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.5px" }}>Processing</span>
+              <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "14px", color: "#2563EB", fontWeight: "700" }}>{pct}%</span>
+            </div>
+            <div style={{ height: "6px", background: "#F1F5F9", borderRadius: "3px", overflow: "hidden", marginBottom: "24px" }}>
+              <div style={{ height: "100%", width: `${pct}%`, background: "#2563EB", borderRadius: "3px", transition: "width 0.3s ease" }} />
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+              {steps.map((label, i) => {
+                const isPast = i < step;
+                const isActive = i === step;
+                if (i > step + 1) return null;
+                return (
+                  <div key={i} className="slide-up" style={{ display: "flex", gap: "12px", alignItems: "center", opacity: isPast ? 0.4 : 1 }}>
+                    <div style={{ width: "16px", height: "16px", borderRadius: "50%", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", border: `2px solid ${isPast ? '#10B981' : isActive ? '#2563EB' : '#CBD5E1'}`, background: isPast ? '#10B981' : 'transparent' }}>
+                      {isPast && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>}
+                      {isActive && <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#2563EB" }} />}
+                    </div>
+                    <div style={{ fontSize: "13px", fontWeight: "600", color: isActive ? '#0F172A' : '#64748B' }}>{label}</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function ResultsScreen({ data, onReset }) {
+      const [showJson, setShowJson] = useState(false);
+
+      // Typing effect logic
+      useEffect(() => {
+        if (!showJson) return;
+        const codeElement = document.getElementById("json-output");
+        if (!codeElement) return;
+        
+        const jsonString = `{
+  "invoice": {
+    "id": "${data.id}",
+    "vendor": "${data.vendor}",
+    "date": "${data.date}",
+    "amounts": {
+      "subtotal": ${data.sub},
+      "tax": ${data.tax},
+      "total": ${data.total}
+    },
+    "metadata": {
+      "confidence_score": ${data.conf},
+      "extraction_time": "1.2s"
+    }
+  }
+}`;
+        // Syntax highlighting logic
+        const highlighted = jsonString
+          .replace(/"([^"]+)":/g, '<span class="j-key">"$1"</span>:')
+          .replace(/: "([^"]+)"/g, ': <span class="j-str">"$1"</span>')
+          .replace(/: ([0-9.]+)/g, ': <span class="j-num">$1</span>');
+
+        codeElement.innerHTML = highlighted;
+      }, [showJson, data]);
+
+      useEffect(() => {
+        const timer = setTimeout(() => setShowJson(true), 400);
+        return () => clearTimeout(timer);
+      }, []);
+
+      const $ = n => new Intl.NumberFormat("en-US",{style:"currency",currency:"USD"}).format(n);
+
+      return (
+        <div className="fade-in" style={{ height: "100%", display: "flex", flexDirection: "column" }}>
+          <div style={{ padding: "16px 24px", borderBottom: "1px solid #E2E8F0", display: "flex", justifyContent: "space-between", alignItems: "center", background: "white" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#10B981" }}></div>
+              <span style={{ fontSize: "14px", fontWeight: "700", color: "#0F172A" }}>Extraction Complete</span>
+            </div>
+            <button onClick={onReset} style={{ fontSize: "13px", fontWeight: "600", color: "#64748B", background: "none", border: "none", cursor: "pointer" }}>Run another file →</button>
+          </div>
+
+          <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
+            
+            <div style={{ width: "50%", padding: "24px", overflowY: "auto", background: "#F8FAFC" }}>
+              <div style={{ fontSize: "11px", fontWeight: "700", color: "#64748B", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "16px" }}>Extracted Entities</div>
+              <div style={{ background: "white", border: "1px solid #E2E8F0", borderRadius: "12px", overflow: "hidden" }}>
+                {[
+                  ["Invoice ID", data.id],
+                  ["Vendor", data.vendor],
+                  ["Date", data.date],
+                  ["Subtotal", $(data.sub)],
+                  ["Tax", $(data.tax)],
+                ].map(([k, v]) => (
+                  <div key={k} style={{ display: "flex", justifyContent: "space-between", padding: "12px 16px", borderBottom: "1px solid #F1F5F9", fontSize: "13px" }}>
+                    <span style={{ color: "#64748B", fontWeight: "500" }}>{k}</span>
+                    <span style={{ fontWeight: "600", color: "#0F172A", fontFamily: "'JetBrains Mono', monospace" }}>{v}</span>
+                  </div>
+                ))}
+                <div style={{ display: "flex", justifyContent: "space-between", padding: "12px 16px", background: "#EFF6FF", fontSize: "14px" }}>
+                  <span style={{ color: "#1D4ED8", fontWeight: "700" }}>Total Amount</span>
+                  <span style={{ fontWeight: "800", color: "#1D4ED8", fontFamily: "'JetBrains Mono', monospace" }}>{$(data.total)}</span>
+                </div>
+              </div>
+
+              <div style={{ marginTop: "24px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", fontWeight: "700", color: "#64748B", marginBottom: "8px" }}>
+                  <span>Layout Confidence</span>
+                  <span style={{ color: "#10B981" }}>{data.conf}%</span>
+                </div>
+                <div style={{ height: "6px", background: "#E2E8F0", borderRadius: "3px", overflow: "hidden" }}>
+                  <div style={{ height: "100%", width: `${data.conf}%`, background: "#10B981", borderRadius: "3px" }} />
+                </div>
+              </div>
+            </div>
+
+            <div style={{ width: "50%", background: "#0B1120", padding: "24px", overflowY: "auto", borderLeft: "1px solid #1E293B" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+                <div style={{ fontSize: "11px", fontWeight: "700", color: "#94A3B8", textTransform: "uppercase", letterSpacing: "1px" }}>JSON Output</div>
+                <div style={{ fontSize: "10px", color: "#475569", fontFamily: "'JetBrains Mono', monospace", background: "#1E293B", padding: "2px 6px", borderRadius: "4px" }}>application/json</div>
+              </div>
+              <pre style={{ margin: 0, fontFamily: "'JetBrains Mono', monospace", fontSize: "13px", lineHeight: "1.6", color: "#F8FAFC", whiteSpace: "pre-wrap" }}>
+                {!showJson ? <span style={{color: "#64748B"}}>// Serializing data...</span> : <code id="json-output"></code>}
+              </pre>
+            </div>
+
+          </div>
+        </div>
+      );
+    }
+
+    function App() {
+      const [screen, setScreen] = useState("upload");
+      const [step, setStep] = useState(0);
+      const [sampleIndex, setSampleIndex] = useState(0);
+
+      useEffect(() => {
+        if (screen !== "processing") { setStep(0); return; }
+        let currentStep = 0;
+        const interval = setInterval(() => {
+          currentStep++;
+          setStep(currentStep);
+          if (currentStep >= 5) {
+            clearInterval(interval);
+            setTimeout(() => setScreen("results"), 600);
+          }
+        }, 400); // Speed of the processing steps
+        return () => clearInterval(interval);
+      }, [screen]);
+
+      const handleReset = () => {
+        setSampleIndex((prev) => (prev + 1) % SAMPLES.length);
+        setScreen("upload");
+      };
+
+      return (
+        <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
+          {screen === "upload" && <UploadScreen onStart={() => setScreen("processing")} />}
+          {screen === "processing" && <ProcessingScreen step={step} />}
+          {screen === "results" && <ResultsScreen data={SAMPLES[sampleIndex]} onReset={handleReset} />}
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('react-demo-root'));
+    root.render(<App />);
+  </script>
+
+  <script> feather.replace(); </script>
+</body>
+</html>
